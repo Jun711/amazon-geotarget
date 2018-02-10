@@ -1,0 +1,31 @@
+{
+  "name": "whereabout",
+  "version": "1.0.0",
+  "description": "It is to locate the location of a user",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm test"
+  },
+  "bin": {
+    "greeter": "bin/whereabout.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jun711/whereabout.git"
+  },
+  "keywords": [
+    "geolocation",
+    "location",
+    "country"
+  ],
+  "author": "Jun Goh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jun711/whereabout/issues"
+  },
+  "homepage": "https://github.com/Jun711/whereabout#readme",
+  "devDependencies": {
+    "eslint": "^4.17.0"
+  }
+}
