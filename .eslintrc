@@ -1,5 +1,5 @@
 {
-  "extends": "eslint:recommended",
+  "extends": "airbnb",
   "parserOptions": {
     "ecmaVersion": 6
   },
@@ -7,5 +7,14 @@
     "node": true,
     "browser": true,
     "es6": true
+  },
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "local",
+        "args": "none"
+      }
+    ]
   }
 }
