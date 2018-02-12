@@ -2,10 +2,14 @@
   "name": "whereabout",
   "version": "1.0.0",
   "description": "It is to locate the location of a user",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "npm test"
+    "clean": "rm -rf build",
+    "prepublish": "npm test",
+    "commit": "git-cz",
+    "build": "npm run clean && webpack",
+    "start": "webpack-dev-server --output-public-path=/build/"
   },
   "bin": {
     "greeter": "bin/whereabout.js"
@@ -26,10 +30,22 @@
   },
   "homepage": "https://github.com/Jun711/whereabout#readme",
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.1",
+    "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "commitizen": "^2.9.6",
+    "cz-conventional-changelog": "^2.1.0",
     "eslint": "^4.17.0",
-    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.6.1"
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
