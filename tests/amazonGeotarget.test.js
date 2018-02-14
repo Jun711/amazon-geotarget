@@ -1,9 +1,9 @@
 /* eslint-env node, mocha */
 import { assert, expect } from 'chai';
-import whereabout from '../src/whereabout';
+import { whereabout } from '../src/amazonGeotarget';
 
 describe('whereabout', () => {
-  it('should call FreeGeoIp when no provider specified', (done) => {
+  it('should call IPAPI when no provider specified', (done) => {
     whereabout()
       .then((response) => {
         assert.isString(response, 'IPAPI returns country code');
@@ -16,8 +16,23 @@ describe('whereabout', () => {
       });
   });
 
+  it('should call IPAPI when provider 0 specified', (done) => {
+    whereabout(0)
+      .then((response) => {
+        assert.isString(response, 'IPAPI returns country code');
+        expect(response).to.be.a('string');
+        expect(response).to.have.lengthOf(2);
+        done();
+      })
+      .catch((err) => {
+        done(err);
+      });
+  });
+
   it('should call IPAPI when provider 0 specified', async () => {
-    const response = await whereabout(0);
+    const response = await whereabout(0).catch((err) => {
+      throw err;
+    });
     assert.isString(response, 'IPAPI returns country code');
     expect(response).to.be.a('string');
     expect(response).to.have.lengthOf(2);
@@ -40,10 +55,20 @@ describe('whereabout', () => {
       .then(() => {
         assert.fail(0, 1, 'Expected rejected promise');
         done();
-      }, (error) => {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('Service is not available')
+      }, (err) => {
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.equal('Service is not available')
         done();
       });
+  });
+
+  it('await - should rejects as promised when provider 2 specified', async () => {
+    const errorHandler = function (err) {
+      expect(err).to.be.an.instanceof(Error);
+      expect(err.message).to.equal('Service is not available');
+    };
+
+    const response = await whereabout(2).catch(err => errorHandler(err));
+    expect(response).to.be.an('undefined');
   });
 });

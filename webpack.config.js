@@ -2,11 +2,11 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    app: ['babel-polyfill', './src/whereabout.js'],
+    app: ['babel-polyfill', './src/amazonGeotarget.js'],
   },
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'whereabout.bundle.js',
+    filename: 'amazonGeotarget.bundle.js',
   },
   module: {
     loaders: [{

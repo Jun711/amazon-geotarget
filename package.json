@@ -1,5 +1,5 @@
 {
-  "name": "whereabout",
+  "name": "amazonGeotarget",
   "version": "1.0.0",
   "description": "It is to locate the location of a user",
   "main": "src/index.js",
