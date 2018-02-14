@@ -2301,6 +2301,10 @@ gauge@~2.7.3:
     strip-ansi "^3.0.1"
     wide-align "^1.1.0"
 
+geo-amazon@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/geo-amazon/-/geo-amazon-0.2.0.tgz#851360fb9da14e5a54456d74a3995035a4c00e0e"
+
 get-caller-file@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.2.tgz#f702e63127e7e231c160a80c1554acb70d5047e5"
