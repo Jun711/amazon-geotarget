@@ -1,13 +1,12 @@
 /* eslint-env node, mocha */
 import { assert, expect } from 'chai';
-import { geolocateFreeGeoIp, geolocateIPAPI } from '../src/geolocate/geolocate';
+import GeolocateService from '../src/geolocate';
 
 describe('geolocateFreeGeoIp', () => {
   it('should return ipinfo json object', (done) => {
-    geolocateFreeGeoIp()
+    GeolocateService.geolocateFreeGeoIp()
       .then((response) => {
         assert.isObject(response);
-        // console.log('response: ', response);
         done();
       })
       .catch((err) => {
@@ -18,7 +17,7 @@ describe('geolocateFreeGeoIp', () => {
   it('should contain properties as specified in the document', (done) => {
     const responseKeys = ['ip', 'country_code', 'country_name', 'region_code', 'region_name',
       'city', 'zip_code', 'time_zone', 'latitude', 'longitude', 'metro_code'];
-    geolocateFreeGeoIp()
+    GeolocateService.geolocateFreeGeoIp()
       .then((response) => {
         assert.containsAllKeys(response, responseKeys);
         done();
@@ -29,7 +28,7 @@ describe('geolocateFreeGeoIp', () => {
   });
 
   it('should contain country code property', (done) => {
-    geolocateFreeGeoIp()
+    GeolocateService.geolocateFreeGeoIp()
       .then((response) => {
         expect(response).to.have.property('country_code');
         done();
@@ -42,7 +41,7 @@ describe('geolocateFreeGeoIp', () => {
 
 describe('geolocateIPAPI', () => {
   it('should return country code string', (done) => {
-    geolocateIPAPI()
+    GeolocateService.geolocateIPAPI()
       .then((response) => {
         assert.isString(response, 'IPAPI returns country code');
         done();
@@ -53,7 +52,7 @@ describe('geolocateIPAPI', () => {
   });
 
   it('should return country code string', (done) => {
-    geolocateIPAPI()
+    GeolocateService.geolocateIPAPI()
       .then((response) => {
         expect(response).to.be.a('string');
         done();
@@ -64,7 +63,7 @@ describe('geolocateIPAPI', () => {
   });
 
   it('should return country code string that has length 2', (done) => {
-    geolocateIPAPI()
+    GeolocateService.geolocateIPAPI()
       .then((response) => {
         expect(response).to.have.lengthOf(2);
         done();
