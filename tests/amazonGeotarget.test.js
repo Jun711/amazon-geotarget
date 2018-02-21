@@ -1,10 +1,10 @@
 /* eslint-env node, mocha */
 import { assert, expect } from 'chai';
-import { whereabout } from '../src/amazonGeotarget';
+import AmazonGeotargetService from '../src/amazonGeotarget';
 
 describe('whereabout', () => {
   it('should call IPAPI when no provider specified', (done) => {
-    whereabout()
+    AmazonGeotargetService.whereabout()
       .then((response) => {
         assert.isString(response, 'IPAPI returns country code');
         expect(response).to.be.a('string');
@@ -17,7 +17,7 @@ describe('whereabout', () => {
   });
 
   it('should call IPAPI when provider 0 specified', (done) => {
-    whereabout(0)
+    AmazonGeotargetService.whereabout(0)
       .then((response) => {
         assert.isString(response, 'IPAPI returns country code');
         expect(response).to.be.a('string');
@@ -30,7 +30,7 @@ describe('whereabout', () => {
   });
 
   it('should call IPAPI when provider 0 specified', async () => {
-    const response = await whereabout(0).catch((err) => {
+    const response = await AmazonGeotargetService.whereabout(0).catch((err) => {
       throw err;
     });
     assert.isString(response, 'IPAPI returns country code');
@@ -39,7 +39,7 @@ describe('whereabout', () => {
   });
 
   it('should call FreeGeoIp when provider 1 specified', (done) => {
-    whereabout(1)
+    AmazonGeotargetService.whereabout(1)
       .then((response) => {
         assert.isObject(response);
         expect(response).to.have.property('country_code');
@@ -51,7 +51,7 @@ describe('whereabout', () => {
   });
 
   it('should rejects as promised when provider 2 specified', (done) => {
-    whereabout(2)
+    AmazonGeotargetService.whereabout(2)
       .then(() => {
         assert.fail(0, 1, 'Expected rejected promise');
         done();
@@ -63,12 +63,12 @@ describe('whereabout', () => {
   });
 
   it('await - should rejects as promised when provider 2 specified', async () => {
-    const errorHandler = function (err) {
+    const errorHandler = function errorHandler(err) {
       expect(err).to.be.an.instanceof(Error);
       expect(err.message).to.equal('Service is not available');
     };
 
-    const response = await whereabout(2).catch(err => errorHandler(err));
+    const response = await AmazonGeotargetService.whereabout(2).catch(err => errorHandler(err));
     expect(response).to.be.an('undefined');
   });
 });
