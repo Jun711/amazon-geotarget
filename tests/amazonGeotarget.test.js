@@ -5,6 +5,7 @@ import amazon from 'geo-amazon';
 import fetchMock from 'fetch-mock';
 import GeolocateService from '../src/geolocate';
 import AmazonGeotargetService from '../src/amazonGeotarget';
+import noIpInfoErrorMsg from '../src/utils/constants';
 
 describe('fn whereabout', () => {
   describe('mock IP services', () => {
@@ -29,6 +30,11 @@ describe('fn whereabout', () => {
       expect(response).to.be.a('string');
       expect(response).to.have.lengthOf(2);
       expect(response).to.equal('US');
+    }
+
+    function errorHandler(err) {
+      expect(err).to.be.an.instanceof(Error);
+      expect(err.message).to.equal('Service is not available');
     }
 
     it('whereabout should call IPAPI when no provider specified', (done) => {
@@ -72,24 +78,18 @@ describe('fn whereabout', () => {
         });
     });
 
-    it('whereabout should rejects as promised when provider 2 specified', (done) => {
+    it('whereabout should reject as promised when provider 2 specified', (done) => {
       AmazonGeotargetService.whereabout({ provider: 2 })
         .then(() => {
           assert.fail(0, 1, 'Expected rejected promise');
           done();
         }, (err) => {
-          expect(err).to.be.an.instanceof(Error);
-          expect(err.message).to.equal('Service is not available')
+          errorHandler(err);
           done();
         });
     });
 
-    it('await - whereabout should rejects as promised when provider 2 specified', async () => {
-      const errorHandler = function errorHandler(err) {
-        expect(err).to.be.an.instanceof(Error);
-        expect(err.message).to.equal('Service is not available');
-      };
-
+    it('await - whereabout should reject as promised when provider 2 specified', async () => {
       const response = await AmazonGeotargetService.whereabout({ provider: 2 })
         .catch(err => errorHandler(err));
       expect(response).to.be.an('undefined');
@@ -100,6 +100,7 @@ describe('fn whereabout', () => {
     const ipapiRes = 'US';
     const ipapiUndefined = 'Undefined';
     const freeGeoIpRes = { country_code: 'US' };
+    const freeGeoIpUndefined = '404 page not found';
 
     it('whereabout should returns US using provider 0 and IP from US is specified', async () => {
       fetchMock.get('https://ipapi.co/76.72.167.90/country', ipapiRes);
@@ -124,9 +125,9 @@ describe('fn whereabout', () => {
       }).catch((err) => {
         throw err;
       });
-      assert.strictEqual(response, undefined);
-      assert.notExists(response); // null or undefined
-      assert.isUndefined(response);
+      expect(response).to.be.an('error');
+      expect(response.message).to.be.a('string');
+      expect(response.message).to.equal(noIpInfoErrorMsg);
       fetchMock.restore();
     });
 
@@ -146,16 +147,16 @@ describe('fn whereabout', () => {
 
     it('whereabout should returns US using provider 1 and IP is non-existent', async () => {
       // freegeoip response when IP is not found
-      fetchMock.get('https://freegeoip.net/json/1234567', ' 404 page not found');
+      fetchMock.get('https://freegeoip.net/json/1234567', freeGeoIpUndefined);
       const response = await AmazonGeotargetService.whereabout({
         provider: 1,
         ip: '1234567',
       }).catch((err) => {
         throw err;
       });
-      assert.strictEqual(response, undefined);
-      assert.notExists(response); // null or undefined
-      assert.isUndefined(response);
+      expect(response).to.be.an('error');
+      expect(response.message).to.be.a('string');
+      expect(response.message).to.equal(noIpInfoErrorMsg);
       fetchMock.restore();
     });
   });
@@ -236,7 +237,7 @@ describe('fn amazonGeotarget', () => {
     });
   });
 
-  describe('stub amazonStore and geolocate ', () => {
+  describe('stub whereabout and geolocate ', () => {
     let amazonStoreStub;
     let whereaboutStub;
 
