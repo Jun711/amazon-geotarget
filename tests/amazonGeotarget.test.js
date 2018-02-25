@@ -257,4 +257,35 @@ describe('fn amazonGeotarget', () => {
       whereaboutStub.restore();
     });
   });
+
+  describe('stub amazonStore and whereabout ', () => {
+    let amazonStoreStub;
+    let whereaboutStub;
+
+    it('amazonGeotarget should return www.amazon.com when amazon.store returns non Amazon URL', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves('US');
+      const response = await AmazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.calledOnce).to.equal(true);
+      assert.strictEqual(response, 'www.amazon.com');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+      amazonStoreStub.restore();
+      whereaboutStub.restore();
+    });
+
+    it('amazonGeotarget should return www.amazon.com when whereabout returns undefined', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves(undefined);
+      const response = await AmazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.notCalled).to.equal(true);
+      assert.strictEqual(response, 'www.amazon.com');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+      amazonStoreStub.restore();
+      whereaboutStub.restore();
+    });
+  });
 });

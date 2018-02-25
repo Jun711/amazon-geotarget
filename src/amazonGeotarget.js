@@ -42,6 +42,9 @@ class AmazonGeotargetService {
     } else if (response !== 'Undefined') {
       countryCode = response;
     }
+    if (!countryCode) {
+      return 'www.amazon.com';
+    }
     return AmazonGeotargetService.amazonAffiliateURL(countryCode);
   }
 }
