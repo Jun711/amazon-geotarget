@@ -163,46 +163,91 @@ describe('fn whereabout', () => {
 });
 
 describe('fn amazonAffiliateURL', () => {
-  it('amazonAffiliateURL should return www.amazon.com when no country specified', () => {
-    const response = AmazonGeotargetService.amazonAffiliateURL()
-    assert.strictEqual(response, 'www.amazon.com');
-    assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
-    expect(response).to.be.a('string');
+  describe('not using amazon stub', () => {
+    let amazonGeotargetService;
+
+    beforeEach(() => {
+      amazonGeotargetService = new AmazonGeotargetService();
+    });
+
+    it('amazonAffiliateURL should return www.amazon.com when no country specified', () => {
+      const response = amazonGeotargetService.amazonAffiliateURL();
+      assert.strictEqual(response, 'www.amazon.com');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonAffiliateURL should return www.amazon.com when non-existent country specified', () => {
+      const response = amazonGeotargetService.amazonAffiliateURL('ABC');
+      assert.strictEqual(response, 'www.amazon.com');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonAffiliateURL should return default store if it is set when non-existent country specified', () => {
+      const defaultStore = 'www.amazon.co.uk';
+      amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      const response = amazonGeotargetService.amazonAffiliateURL('amazon');
+      assert.strictEqual(response, defaultStore);
+      assert.isString(response, `amazonAffiliateURL returns ${defaultStore}`);
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonAffiliateURL should return www.amazon.co.uk when GB specified', () => {
+      const response = amazonGeotargetService.amazonAffiliateURL('GB');
+      assert.strictEqual(response, 'www.amazon.co.uk');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.co.uk');
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonAffiliateURL should return www.amazon.co.jp when JP specified', () => {
+      const response = amazonGeotargetService.amazonAffiliateURL('JP');
+      assert.strictEqual(response, 'www.amazon.co.jp');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.co.jp');
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonAffiliateURL should return www.amazon.de when DE specified', () => {
+      const response = amazonGeotargetService.amazonAffiliateURL('DE');
+      assert.strictEqual(response, 'www.amazon.de');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.de');
+      expect(response).to.be.a('string');
+    });
   });
 
-  it('amazonAffiliateURL should return www.amazon.com when non-existent country specified', () => {
-    const response = AmazonGeotargetService.amazonAffiliateURL('ABC')
-    assert.strictEqual(response, 'www.amazon.com');
-    assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
-    expect(response).to.be.a('string');
-  });
+  describe('stub amazon plugin', () => {
+    let amazonStoreStub;
 
-  it('amazonAffiliateURL should return www.amazon.co.uk when GB specified', () => {
-    const response = AmazonGeotargetService.amazonAffiliateURL('GB')
-    assert.strictEqual(response, 'www.amazon.co.uk');
-    assert.isString(response, 'amazonAffiliateURL returns www.amazon.co.uk');
-    expect(response).to.be.a('string');
-  });
+    beforeEach(() => {
+      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+    });
 
-  it('amazonAffiliateURL should return www.amazon.co.jp when JP specified', () => {
-    const response = AmazonGeotargetService.amazonAffiliateURL('JP')
-    assert.strictEqual(response, 'www.amazon.co.jp');
-    assert.isString(response, 'amazonAffiliateURL returns www.amazon.co.jp');
-    expect(response).to.be.a('string');
-  });
+    it('amazonAffiliateURL should return www.amazon.com when non-existent country specified', () => {
+      const amazonGeotargetService = new AmazonGeotargetService();
+      const response = amazonGeotargetService.amazonAffiliateURL('US');
+      assert.strictEqual(response, 'www.amazon.com');
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+      amazonStoreStub.restore();
+    });
 
-  it('amazonAffiliateURL should return www.amazon.de when DE specified', () => {
-    const response = AmazonGeotargetService.amazonAffiliateURL('DE')
-    assert.strictEqual(response, 'www.amazon.de');
-    assert.isString(response, 'amazonAffiliateURL returns www.amazon.de');
-    expect(response).to.be.a('string');
+    it('amazonAffiliateURL should return default store if it is set when non-existent country specified', () => {
+      const defaultStore = 'www.amazon.co.uk';
+      const amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      const response = amazonGeotargetService.amazonAffiliateURL('US');
+      assert.strictEqual(response, defaultStore);
+      assert.isString(response, 'amazonAffiliateURL returns default store');
+      expect(response).to.be.a('string');
+      amazonStoreStub.restore();
+    });
   });
-})
+});
 
 describe('fn amazonGeotarget', () => {
   describe('real service', () => {
     it('amazonGeotarget real service should return US Amazon store URL using IP 199.87.228.66', async () => {
-      const response = await AmazonGeotargetService.amazonGeotarget('199.87.228.66').catch((err) => {
+      const amazonGeotargetService = new AmazonGeotargetService();
+      const response = await amazonGeotargetService.amazonGeotarget('199.87.228.66').catch((err) => {
         throw err;
       });
       assert.isString(response, 'amazonGeotarget returns Amazon store URL');
@@ -212,21 +257,41 @@ describe('fn amazonGeotarget', () => {
   });
 
   describe('stub geolocate', () => {
-    it('amazonGeotarget should return US Amazon store URL using non-existent IP', async () => {
+    let amazonGeotargetService;
+
+    beforeEach(() => {
+      amazonGeotargetService = new AmazonGeotargetService();
+    });
+
+    it('amazonGeotarget should return US Amazon store URL when using non-existent IP', async () => {
       const geolocateIpapiStub = stub(GeolocateService, 'geolocateIPAPI').resolves('Undefined');
-      const response = await AmazonGeotargetService.amazonGeotarget('1234567').catch((err) => {
+      const response = await amazonGeotargetService.amazonGeotarget('1234567').catch((err) => {
         throw err;
       });
       expect(geolocateIpapiStub.calledOnce).to.equal(true);
       assert.isString(response, 'amazonGeotarget returns Amazon store URL');
       assert.strictEqual(response, 'www.amazon.com');
+      expect(response).to.be.a('string');
+      geolocateIpapiStub.restore();
+    });
+
+    it('amazonGeotarget should return default store URL if it is set when using non-existent IP', async () => {
+      const geolocateIpapiStub = stub(GeolocateService, 'geolocateIPAPI').resolves('Undefined');
+      const defaultStore = 'www.amazon.ca';
+      amazonGeotargetService.defaultStore = defaultStore;
+      const response = await amazonGeotargetService.amazonGeotarget('1234567').catch((err) => {
+        throw err;
+      });
+      expect(geolocateIpapiStub.calledOnce).to.equal(true);
+      assert.isString(response, 'amazonGeotarget returns default store URL');
+      assert.strictEqual(response, defaultStore);
       expect(response).to.be.a('string');
       geolocateIpapiStub.restore();
     });
 
     it('amazonGeotarget should return US Amazon if user is in US', async () => {
       const geolocateIpapiStub = stub(GeolocateService, 'geolocateIPAPI').resolves('US');
-      const response = await AmazonGeotargetService.amazonGeotarget().catch((err) => {
+      const response = await amazonGeotargetService.amazonGeotarget().catch((err) => {
         throw err;
       });
       expect(geolocateIpapiStub.calledOnce).to.equal(true);
@@ -237,38 +302,54 @@ describe('fn amazonGeotarget', () => {
     });
   });
 
-  describe('stub whereabout and geolocate ', () => {
+  describe('stub amazonStore and whereabout ', () => {
     let amazonStoreStub;
     let whereaboutStub;
+    let amazonGeotargetService;
+    const amazonUS = 'www.amazon.com';
 
-    before(() => {
-      amazonStoreStub = stub(amazon, 'store').returns('ABC');
-      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves('JP');
+    beforeEach(() => {
+      amazonGeotargetService = new AmazonGeotargetService();
     });
 
     it('amazonGeotarget should return www.amazon.com when amazon.store returns non Amazon URL', async () => {
-      const response = await AmazonGeotargetService.amazonGeotarget('199.87.228.66');
+      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves('US');
+      const response = await amazonGeotargetService.amazonGeotarget();
       expect(whereaboutStub.calledOnce).to.equal(true);
       expect(amazonStoreStub.calledOnce).to.equal(true);
-      assert.strictEqual(response, 'www.amazon.com');
+      assert.strictEqual(response, amazonUS);
       assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
       expect(response).to.be.a('string');
       amazonStoreStub.restore();
       whereaboutStub.restore();
     });
-  });
 
-  describe('stub amazonStore and whereabout ', () => {
-    let amazonStoreStub;
-    let whereaboutStub;
-
-    it('amazonGeotarget should return www.amazon.com when amazon.store returns non Amazon URL', async () => {
-      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+    it('amazonGeotarget should return default store if it is set when amazon.store returns non Amazon URL', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('www.google.com');
       whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves('US');
-      const response = await AmazonGeotargetService.amazonGeotarget();
+      const defaultStore = 'www.amazon.ca';
+      amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      const response = await amazonGeotargetService.amazonGeotarget();
       expect(whereaboutStub.calledOnce).to.equal(true);
       expect(amazonStoreStub.calledOnce).to.equal(true);
-      assert.strictEqual(response, 'www.amazon.com');
+      assert.strictEqual(response, defaultStore);
+      assert.isString(response, 'amazonAffiliateURL returns default store');
+      expect(response).to.be.a('string');
+      amazonStoreStub.restore();
+      whereaboutStub.restore();
+    });
+
+    it('amazonGeotarget\'s default store has to be set at instantiation', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('www.google.com');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves('US');
+      const defaultStore = 'www.amazon.ca';
+      AmazonGeotargetService.defaultStore = defaultStore;
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.calledOnce).to.equal(true);
+      assert.notEqual(response, defaultStore);
+      assert.strictEqual(response, amazonUS);
       assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
       expect(response).to.be.a('string');
       amazonStoreStub.restore();
@@ -278,11 +359,26 @@ describe('fn amazonGeotarget', () => {
     it('amazonGeotarget should return www.amazon.com when whereabout returns undefined', async () => {
       amazonStoreStub = stub(amazon, 'store').returns('ABC');
       whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves(undefined);
-      const response = await AmazonGeotargetService.amazonGeotarget();
+      const response = await amazonGeotargetService.amazonGeotarget();
       expect(whereaboutStub.calledOnce).to.equal(true);
       expect(amazonStoreStub.notCalled).to.equal(true);
-      assert.strictEqual(response, 'www.amazon.com');
+      assert.strictEqual(response, amazonUS);
       assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+      amazonStoreStub.restore();
+      whereaboutStub.restore();
+    });
+
+    it('amazonGeotarget should return default store if it is set when whereabout returns undefined', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+      const defaultStore = 'www.amazon.co.jp';
+      amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves(undefined);
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.notCalled).to.equal(true);
+      assert.strictEqual(response, defaultStore);
+      assert.isString(response, 'amazonAffiliateURL returns default store');
       expect(response).to.be.a('string');
       amazonStoreStub.restore();
       whereaboutStub.restore();

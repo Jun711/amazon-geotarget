@@ -11,7 +11,14 @@
 <script>
   function getLocation() {
     console.log(this)
-    amazonGeotarget().then(res => console.log(res));
+
+    // default store: 'www.amazon.co.uk'
+    amazonGeotargetService = new AmazonGeotargetService('www.amazon.co.uk');
+    console.log(amazonGeotargetService)
+    amazonGeotargetService.amazonGeotarget('123456').then(res => console.log(res));
+
+    // will return a store depending on your location
+    amazonGeotargetService.amazonGeotarget().then(res => console.log(res));
     whereabout().then(res => console.log(res));
   }
 </script>
