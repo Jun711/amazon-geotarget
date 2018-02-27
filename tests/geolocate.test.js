@@ -2,7 +2,7 @@
 import { assert, expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import GeolocateService from '../src/geolocate';
-import noIpInfoErrorMsg from '../src/utils/constants';
+import { noIpInfoMsg, serviceNotAvailableMsg } from '../src/utils/constants';
 
 describe('geolocateFreeGeoIp', () => {
   const freeGeoIpRes = { country_code: 'US' };
@@ -93,13 +93,29 @@ describe('geolocateFreeGeoIp', () => {
     fetchMock.get('https://freegeoip.net/json/123456', freeGeoIpUndefined)
     GeolocateService.geolocateFreeGeoIp('123456')
       .then((response) => {
-        expect(response).to.be.an('error');
-        expect(response.message).to.be.a('string');
-        expect(response.message).to.equal(noIpInfoErrorMsg);
+        expect(response).to.be.an('undefined');
         done();
       })
       .catch((err) => {
-        done(err);
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.be.a('string');
+        expect(err.message).to.equal(noIpInfoMsg);
+        done();
+      });
+  });
+
+  it('should return an error freegeoip service request returns an error', (done) => {
+    fetchMock.get('https://freegeoip.net/json/123456', 404)
+    GeolocateService.geolocateFreeGeoIp('123456')
+      .then((response) => {
+        expect(response).to.be.an('undefined');
+        done();
+      })
+      .catch((err) => {
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.be.a('string');
+        expect(err.message).to.equal(serviceNotAvailableMsg);
+        done();
       });
   });
 });
@@ -146,7 +162,7 @@ describe('geolocateIPAPI', () => {
     expect(response).to.have.lengthOf(2);
   });
 
-  it('should return an error if there is no ip info', async () => {
+  it('should return an error if ipapi returns \'Undefined\'', async () => {
     fetchMock
       .get('https://ipapi.co/123456/country', ipapiUndefined)
       .catch((unmatchedUrl) => {
@@ -155,11 +171,55 @@ describe('geolocateIPAPI', () => {
     const response = await GeolocateService
       .geolocateIPAPI('123456')
       .catch((err) => {
-        throw err;
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.be.a('string');
+        expect(err.message).to.equal(noIpInfoMsg);
       });
+    expect(response).to.be.an('undefined');
+  });
 
-    expect(response).to.be.an('error');
-    expect(response.message).to.be.a('string');
-    expect(response.message).to.equal(noIpInfoErrorMsg);
+  it('should return an error if ipapi service request returns an error', async () => {
+    fetchMock
+      .get('https://ipapi.co/123456/country', 301)
+      .catch((unmatchedUrl) => {
+        throw new Error(unmatchedUrl);
+      });
+    const response = await GeolocateService
+      .geolocateIPAPI('123456')
+      .catch((err) => {
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.be.a('string');
+        expect(err.message).to.equal(serviceNotAvailableMsg);
+      });
+    expect(response).to.be.an('undefined');
   });
 });
+
+describe('handleError', () => {
+  const goodResponse = { status: 200, ok: true };
+  const badResponse = { status: 301, ok: false };
+
+  it('handle good response', () => {
+    let response;
+    try {
+      response = GeolocateService.handleError(goodResponse);
+    } catch (err) {
+      expect(err).to.be.an('undefined');
+    }
+    expect(response).to.be.an('object');
+    expect(response).to.have.property('ok');
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it('handle bad response', () => {
+    let response;
+    try {
+      response = GeolocateService.handleError(badResponse);
+    } catch (err) {
+      expect(err).to.be.an.instanceof(Error);
+      expect(err.message).to.be.a('string');
+      expect(err.message).to.equal(serviceNotAvailableMsg);
+    }
+    expect(response).to.be.an('undefined');
+  });
+})

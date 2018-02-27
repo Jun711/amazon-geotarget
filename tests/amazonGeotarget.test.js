@@ -5,7 +5,7 @@ import amazon from 'geo-amazon';
 import fetchMock from 'fetch-mock';
 import GeolocateService from '../src/geolocate';
 import AmazonGeotargetService from '../src/amazonGeotarget';
-import noIpInfoErrorMsg from '../src/utils/constants';
+import { noIpInfoMsg, serviceNotAvailableMsg } from '../src/utils/constants';
 
 describe('fn whereabout', () => {
   describe('mock IP services', () => {
@@ -34,7 +34,7 @@ describe('fn whereabout', () => {
 
     function errorHandler(err) {
       expect(err).to.be.an.instanceof(Error);
-      expect(err.message).to.equal('Service is not available');
+      expect(err.message).to.equal(serviceNotAvailableMsg);
     }
 
     it('whereabout should call IPAPI when no provider specified', (done) => {
@@ -96,13 +96,59 @@ describe('fn whereabout', () => {
     });
   });
 
+  describe('mock IP services with geolocateIPAPI returns an error', () => {
+    let geolocateIpapiStub;
+    let geolocateFreeGeoIpStub;
+    const freeGeoIpRes = { country_code: 'US' };
+    const error = new Error();
+
+    beforeEach(() => {
+      geolocateFreeGeoIpStub = stub(GeolocateService, 'geolocateFreeGeoIp').resolves(freeGeoIpRes);
+    });
+
+    afterEach(() => {
+      geolocateIpapiStub.restore();
+      geolocateFreeGeoIpStub.restore();
+    });
+
+    it('whereabout should call FreeGeoIp when provider call to IPAPI rejects with an error', async () => {
+      geolocateIpapiStub = stub(GeolocateService, 'geolocateIPAPI').rejects(error);
+      const response = await AmazonGeotargetService
+        .whereabout({ provider: 0 })
+        .catch((err) => {
+          throw err;
+        });
+      expect(geolocateIpapiStub.calledOnce).to.equal(true);
+      expect(geolocateFreeGeoIpStub.calledOnce, 'call geolocateFreeGeoIpStub once').to.equal(true);
+      assert.isObject(response);
+      expect(response).to.have.property('country_code');
+      expect(response.country_code).to.have.lengthOf(2);
+      expect(response.country_code).to.equal('US');
+    });
+
+    it('whereabout should call FreeGeoIp when provider call to IPAPI throws an error', async () => {
+      geolocateIpapiStub = stub(GeolocateService, 'geolocateIPAPI').throws(error);
+      const response = await AmazonGeotargetService
+        .whereabout({ provider: 0 })
+        .catch((err) => {
+          throw err;
+        });
+      expect(geolocateIpapiStub.calledOnce).to.equal(true);
+      expect(geolocateFreeGeoIpStub.calledOnce, 'call geolocateFreeGeoIpStub once').to.equal(true);
+      assert.isObject(response);
+      expect(response).to.have.property('country_code');
+      expect(response.country_code).to.have.lengthOf(2);
+      expect(response.country_code).to.equal('US');
+    });
+  });
+
   describe('mock fetch using fetch-mock', () => {
     const ipapiRes = 'US';
     const ipapiUndefined = 'Undefined';
     const freeGeoIpRes = { country_code: 'US' };
     const freeGeoIpUndefined = '404 page not found';
 
-    it('whereabout should returns US using provider 0 and IP from US is specified', async () => {
+    it('whereabout should return US using provider 0 and IP from US is specified', async () => {
       fetchMock.get('https://ipapi.co/76.72.167.90/country', ipapiRes);
       const response = await AmazonGeotargetService.whereabout({
         provider: 0,
@@ -116,22 +162,22 @@ describe('fn whereabout', () => {
       fetchMock.restore();
     });
 
-    it('whereabout should returns US using provider 0 and IP is non-existent', async () => {
+    it('whereabout should return a rejected promise with an error using provider 0 and IP is non-existent', async () => {
       // geolocateIPAPI response when IP is not found
       fetchMock.get('https://ipapi.co/1234567/country', ipapiUndefined);
       const response = await AmazonGeotargetService.whereabout({
         provider: 0,
         ip: '1234567',
       }).catch((err) => {
-        throw err;
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.be.a('string');
+        expect(err.message).to.equal(serviceNotAvailableMsg);
       });
-      expect(response).to.be.an('error');
-      expect(response.message).to.be.a('string');
-      expect(response.message).to.equal(noIpInfoErrorMsg);
+      expect(response).to.be.an('undefined');
       fetchMock.restore();
     });
 
-    it('whereabout should returns US using provider 1 and IP from US is specified', async () => {
+    it('whereabout should return US using provider 1 and IP from US is specified', async () => {
       fetchMock.get('https://freegeoip.net/json/50.23.94.74', freeGeoIpRes);
       const response = await AmazonGeotargetService.whereabout({
         provider: 1,
@@ -145,18 +191,17 @@ describe('fn whereabout', () => {
       fetchMock.restore();
     });
 
-    it('whereabout should returns US using provider 1 and IP is non-existent', async () => {
+    it('whereabout should return a rejected promise with an error using provider 1 and IP is non-existent', async () => {
       // freegeoip response when IP is not found
       fetchMock.get('https://freegeoip.net/json/1234567', freeGeoIpUndefined);
       const response = await AmazonGeotargetService.whereabout({
         provider: 1,
         ip: '1234567',
       }).catch((err) => {
-        throw err;
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.equal(serviceNotAvailableMsg);
       });
-      expect(response).to.be.an('error');
-      expect(response.message).to.be.a('string');
-      expect(response.message).to.equal(noIpInfoErrorMsg);
+      expect(response).to.be.an('undefined');
       fetchMock.restore();
     });
   });
@@ -302,7 +347,115 @@ describe('fn amazonGeotarget', () => {
     });
   });
 
-  describe('stub amazonStore and whereabout ', () => {
+  describe('stub amazonStore and whereabout rejects / throws an error', () => {
+    let amazonStoreStub;
+    let whereaboutStub;
+    let amazonGeotargetService;
+    const amazonUS = 'www.amazon.com';
+    const error = new Error(serviceNotAvailableMsg);
+
+    beforeEach(() => {
+      amazonGeotargetService = new AmazonGeotargetService();
+      amazonStoreStub = stub(amazon, 'store').returns('US');
+    });
+
+    afterEach(() => {
+      amazonStoreStub.restore();
+      whereaboutStub.restore();
+    })
+
+    it('amazonGeotarget should return www.amazon.com when whereabout rejects with an error', async () => {
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').throws(error);
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.notCalled).to.equal(true);
+      assert.strictEqual(response, amazonUS);
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+      expect(response).to.equal(amazonUS);
+    });
+
+    it('amazonGeotarget should return default store if it is set when whereabout throws an error', async () => {
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').rejects(error);
+      const defaultStore = 'www.amazon.ca';
+      amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.notCalled).to.equal(true);
+      assert.strictEqual(response, defaultStore);
+      assert.isString(response, 'amazonAffiliateURL returns default store');
+      expect(response).to.be.a('string');
+      expect(response).to.equal(defaultStore);
+    });
+  });
+
+  describe('stub amazonStore and whereabout geolocateFreeGeoIp', () => {
+    let amazonStoreStub;
+    let whereaboutStub;
+    let amazonGeotargetService;
+    const amazonUS = 'www.amazon.com';
+    const freeGeoIpUSRes = {
+      ip: '76.72.167.90',
+      country_code: 'US',
+      country_name: 'United States',
+      region_code: 'PA',
+      region_name: 'Pennsylvania',
+      city: 'Philadelphia',
+      zip_code: '19103',
+      time_zone: 'America/New_York',
+      latitude: 39.953,
+      longitude: -75.1756,
+      metro_code: 504,
+    }
+
+    beforeEach(() => {
+      amazonGeotargetService = new AmazonGeotargetService();
+    });
+
+    afterEach(() => {
+      amazonGeotargetService = null;
+      amazonStoreStub.restore();
+      whereaboutStub.restore();
+    });
+
+    it('amazonGeotarget should return www.amazon.com when amazon.store returns non Amazon URL', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('ABC');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves(freeGeoIpUSRes);
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.calledOnce).to.equal(true);
+      assert.strictEqual(response, amazonUS);
+      assert.isString(response, 'amazonAffiliateURL returns www.amazon.com');
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonGeotarget should return default store if it is set when amazon.store returns non Amazon URL', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('www.google.com');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves(freeGeoIpUSRes);
+      const defaultStore = 'www.amazon.ca';
+      amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.calledOnce).to.equal(true);
+      assert.strictEqual(response, defaultStore);
+      assert.isString(response, 'amazonAffiliateURL returns default store');
+      expect(response).to.be.a('string');
+    });
+
+    it('amazonGeotarget should return default store if it is set when geolocateFreeGeoIp response doesn\'t contain country_code', async () => {
+      amazonStoreStub = stub(amazon, 'store').returns('www.amazon.com');
+      whereaboutStub = stub(AmazonGeotargetService, 'whereabout').resolves({});
+      const defaultStore = 'www.amazon.co.uk';
+      amazonGeotargetService = new AmazonGeotargetService(defaultStore);
+      const response = await amazonGeotargetService.amazonGeotarget();
+      expect(whereaboutStub.calledOnce).to.equal(true);
+      expect(amazonStoreStub.notCalled).to.equal(true);
+      expect(response).to.be.a('string');
+      expect(response).to.equal(defaultStore);
+    });
+  });
+
+  describe('stub amazonStore and whereabout geolocateIPAPI', () => {
     let amazonStoreStub;
     let whereaboutStub;
     let amazonGeotargetService;

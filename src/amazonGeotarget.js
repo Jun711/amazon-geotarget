@@ -1,5 +1,6 @@
 import amazon from 'geo-amazon';
 import GeolocateService from './geolocate';
+import { serviceNotAvailableMsg } from './utils/constants';
 
 class AmazonGeotargetService {
   constructor(defaultStore) {
@@ -8,20 +9,19 @@ class AmazonGeotargetService {
 
   static async whereabout({ provider = 0, ip } = { provider: 0 }) {
     if (provider > 1) {
-      return Promise.reject(new Error('Service is not available'));
+      return Promise.reject(new Error(serviceNotAvailableMsg));
     }
     let response = null;
     try {
       if (provider === 0) {
-        response = GeolocateService.geolocateIPAPI(ip);
+        response = await GeolocateService.geolocateIPAPI(ip);
       } else {
-        response = GeolocateService.geolocateFreeGeoIp(ip);
+        response = await GeolocateService.geolocateFreeGeoIp(ip);
       }
     } catch (err) {
       const nextProvider = provider + 1;
-      AmazonGeotargetService.whereabout(nextProvider, ip);
+      return AmazonGeotargetService.whereabout({ provider: nextProvider, ip });
     }
-
     return response;
   }
 
@@ -36,8 +36,12 @@ class AmazonGeotargetService {
   }
 
   async amazonGeotarget(ip) {
-    const response = await AmazonGeotargetService.whereabout({ ip })
-      .catch(() => this.defaultStore);
+    let response;
+    try {
+      response = await AmazonGeotargetService.whereabout({ ip });
+    } catch (err) {
+      return this.defaultStore;
+    }
     let countryCode;
     if (typeof response === 'object') {
       if (response.country_code) {
@@ -56,7 +60,7 @@ class AmazonGeotargetService {
 export default AmazonGeotargetService;
 
 if (typeof window !== 'undefined'
-  && typeof window.amazonGeotarget === 'undefined') {
+  && typeof window.AmazonGeotargetService === 'undefined') {
   window.AmazonGeotargetService = AmazonGeotargetService;
   window.whereabout = AmazonGeotargetService.whereabout;
 }

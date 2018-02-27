@@ -1,3 +1,4 @@
-const noIpInfoErrorMsg = 'no ip information';
+const noIpInfoMsg = 'no ip information';
+const serviceNotAvailableMsg = 'Service is not available';
 
-export default noIpInfoErrorMsg;
+export { noIpInfoMsg, serviceNotAvailableMsg };
