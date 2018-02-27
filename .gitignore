@@ -1,3 +1,10 @@
 .idea/
 node_modules/
 *.log
+
+# build
+build/
+
+# code coverage
+.nyc_output
+coverage/
