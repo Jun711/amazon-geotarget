@@ -59,6 +59,7 @@ class AmazonGeotargetService {
 
 export default AmazonGeotargetService;
 
+/* istanbul ignore next */
 if (typeof window !== 'undefined'
   && typeof window.AmazonGeotargetService === 'undefined') {
   window.AmazonGeotargetService = AmazonGeotargetService;
