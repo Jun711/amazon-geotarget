@@ -3,9 +3,10 @@ import { assert, expect } from 'chai';
 import { stub } from 'sinon';
 import amazon from 'geo-amazon';
 import fetchMock from 'fetch-mock';
+import puppeteer from 'puppeteer';
 import GeolocateService from '../src/geolocate';
 import AmazonGeotargetService from '../src/amazonGeotarget';
-import { noIpInfoMsg, serviceNotAvailableMsg } from '../src/utils/constants';
+import { serviceNotAvailableMsg } from '../src/utils/constants';
 
 describe('fn whereabout', () => {
   describe('mock IP services', () => {
@@ -71,6 +72,7 @@ describe('fn whereabout', () => {
         .then((response) => {
           assert.isObject(response);
           expect(response).to.have.property('country_code');
+          expect(response.country_code).to.have.lengthOf(2);
           done();
         })
         .catch((err) => {
@@ -536,5 +538,36 @@ describe('fn amazonGeotarget', () => {
       amazonStoreStub.restore();
       whereaboutStub.restore();
     });
+  });
+
+  describe.skip(('associate window with AmazonGeotarget methods'), () => {
+    let browser;
+    const puppeteerOpts = {
+      headless: true,
+      slowMo: 100,
+      timeout: 5000,
+    };
+
+    before(async () => {
+      browser = await puppeteer.launch(puppeteerOpts);
+    });
+
+    after(async () => {
+      await browser.close();
+    });
+    it('window AmazonGeotargetService should be AmazonGeotargetService class', async () => {
+      const page = await browser.newPage();
+      await page.goto('http://localhost:8000');
+      expect(await page.title()).to.equal('AmazonGeotarget');
+      const response = await page.evaluate(`(async () => {
+      const amazonGeotargetService = new AmazonGeotargetService();
+      const loc = await window.whereabout();
+      const amazonStore = await amazonGeotargetService.amazonGeotarget();
+      return Promise.resolve({ loc, amazonStore });
+    })()`);
+      expect(response).to.have.property('loc');
+      expect(response).to.have.property('amazonStore');
+      expect(response.amazonStore).to.match(/^www.amazon/);
+    }).timeout('5s');
   });
 });
