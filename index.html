@@ -1,20 +1,17 @@
 <!DOCTYPE html>
-<html lang=‘en’>
+<html lang="en">
 <head>
-    <meta charset=“UTF-8”>
+    <meta charset="UTF-8">
     <title>AmazonGeotarget</title>
-    <script type="text/javascript" src="../build/amazonGeotarget.bundle.js"></script>
+    <script type="text/javascript" src="./build/amazonGeotarget.bundle.js"></script>
 </head>
 <body>
 <p onClick="getLocation()">AmazonGeotarget</p>
 
 <script>
   function getLocation() {
-    console.log(this)
-
     // default store: 'www.amazon.co.uk'
-    amazonGeotargetService = new AmazonGeotargetService('www.amazon.co.uk');
-    console.log(amazonGeotargetService)
+    const amazonGeotargetService = new AmazonGeotargetService('www.amazon.co.uk');
     amazonGeotargetService.amazonGeotarget('123456').then(res => console.log(res));
 
     // will return a store depending on your location
