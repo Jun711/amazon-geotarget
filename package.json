@@ -6,15 +6,12 @@
   "scripts": {
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "test": "cross-env NODE_ENV=test nyc --require babel-register --require isomorphic-fetch --require babel-polyfill --reporter=lcov --reporter=text mocha ./tests/*.js",
-    "posttest": "rm example/amazonGeotarget.bundle.js",
     "clean": "rm -rf build",
     "prepublish": "npm test",
     "commit": "git-cz",
     "build": "npm run clean && webpack",
     "start": "webpack-dev-server --output-public-path=/build/",
-    "serve-bk": "cd example && python -m SimpleHTTPServer",
-    "copy-build": "cp build/amazonGeotarget.bundle.js example/amazonGeotarget.bundle.js",
-    "server": "npm run copy-build && cd example && python -m SimpleHTTPServer"
+    "server": "python -m SimpleHTTPServer"
   },
   "bin": {
     "greeter": "bin/whereabout.js"
