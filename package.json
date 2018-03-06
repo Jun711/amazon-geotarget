@@ -1,6 +1,6 @@
 {
   "name": "amazonGeotarget",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "It is to locate the location of a user",
   "main": "src/index.js",
   "scripts": {
@@ -11,14 +11,16 @@
     "commit": "git-cz",
     "build": "npm run clean && webpack",
     "start": "webpack-dev-server --output-public-path=/build/",
-    "server": "python -m SimpleHTTPServer"
+    "server": "python -m SimpleHTTPServer",
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "bin": {
     "greeter": "bin/whereabout.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jun711/amazon-geotarget.git"
+    "url": "https://github.com/Jun711/amazon-geotarget.git"
   },
   "keywords": [
     "geolocation",
@@ -55,7 +57,8 @@
     "semantic-release": "^12.4.1",
     "sinon": "^4.3.0",
     "webpack": "^3.11.0",
-    "webpack-dev-server": "^2.11.1"
+    "webpack-dev-server": "^2.11.1",
+    "travis-deploy-once": "^4.3.4"
   },
   "config": {
     "commitizen": {
