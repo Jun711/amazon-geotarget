@@ -6,10 +6,10 @@
     <script type="text/javascript" src="./build/amazonGeotarget.bundle.js"></script>
 </head>
 <body>
-<p onClick="getLocation()">AmazonGeotarget</p>
+<p onClick="getAmazonStore()">AmazonGeotarget</p>
 
 <script>
-  function getLocation() {
+  function getAmazonStore() {
     // default store: 'www.amazon.co.uk'
     const amazonGeotargetService = new AmazonGeotargetService('www.amazon.co.uk');
     amazonGeotargetService.amazonGeotarget('123456').then(res => console.log(res));

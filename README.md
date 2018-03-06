@@ -11,7 +11,7 @@ and returns Amazon geotargeted URLs.
 const amazonGeotargetService = new AmazonGeotargetService();
 amazonGeotargetService.amazonGeotarget().then(res => console.log(res));  
   
-// To use it with a 'www.amazon.co.uk' as the default store
+// To use it with 'www.amazon.co.uk' as the default store
 const amazonGeotargetService = new AmazonGeotargetService('www.amazon.co.uk');
 amazonGeotargetService.amazonGeotarget().then(res => console.log(res));
 ```
@@ -20,6 +20,6 @@ Refer to index.html for usage on a webpage.
 
 ## IP Sources
 IP service providers:
-https://ipapi.co/
+https://ipapi.co/  
 https://freegeoip.net/
 
