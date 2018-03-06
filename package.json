@@ -1,7 +1,7 @@
 {
-  "name": "amazonGeotarget",
-  "version": "0.0.0-development",
-  "description": "It is to locate the location of a user",
+  "name": "amazon-geotarget",
+  "version": "1.0.0",
+  "description": "It detects users' location and returns the right amazon store url.",
   "main": "src/index.js",
   "scripts": {
     "coverage": "nyc report --reporter=text-lcov | coveralls",
