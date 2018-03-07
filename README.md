@@ -3,6 +3,8 @@
 
 # AmazonGeotarget
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Jun711/amazon-geotarget.svg)](https://greenkeeper.io/)
+
 This script can detect user's location based on IPs
 and returns Amazon geotargeted URLs.
 
