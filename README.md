@@ -1,7 +1,8 @@
+# AmazonGeotarget
+
 [![Build Status](https://travis-ci.org/Jun711/amazon-geotarget.svg?branch=master)](https://travis-ci.org/Jun711/amazon-geotarget)
 [![Coverage Status](https://coveralls.io/repos/github/Jun711/amazon-geotarget/badge.svg?branch=master)](https://coveralls.io/github/Jun711/amazon-geotarget?branch=master)
-
-# AmazonGeotarget
+[![Greenkeeper badge](https://badges.greenkeeper.io/Jun711/amazon-geotarget.svg)](https://greenkeeper.io/)
 
 This script can detect user's location based on IPs
 and returns Amazon geotargeted URLs.
